@@ -1,5 +1,6 @@
 ## GITIGNORE PERSONAL
-src/config.json
+config.json
+.env
 
 
 
