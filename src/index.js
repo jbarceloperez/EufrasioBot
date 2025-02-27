@@ -48,35 +48,36 @@ for (const file of slashFiles){
 
 // Cargar los comandos en el servidor para que aparezcan disponibles
 if (LOAD_SLASH) {
-    const rest = new REST({ version: "9" }).setToken(token)
-    console.log("\n - LOADING SLASH COMMANDS - ")
+    const rest = new REST({ version: "9" }).setToken(token);
+    console.log("\n - LOADING SLASH COMMANDS - ");
     rest.put(Routes.applicationGuildCommands(client_id, guild_id), {body: commands})
     .then(() => {
-        console.log("✅ Successfully loaded.\nExiting...")
-        process.exit(0)
+        console.log("✅ Successfully loaded.\nExiting...");
+        process.exit(0);
     })
     .catch((err) => {
         if (err){
-            console.log(err)
-            process.exit(1)
+            console.log(err);
+            process.exit(1);
         }
     })
 }
 else {  // Ejecución normal del bot, login e implementación del handler de interacciones
     client.on(Discord.Events.ClientReady, () => {
-        console.log(`\n✅ Logged in as ${client.user.tag}\n`)
+        console.log(`\n✅ Logged in as ${client.user.tag}\n`);
     })
     client.on(Discord.Events.InteractionCreate, (interaction) => {  // al enviarse un mensaje al servidor
         async function handleCommand() {
             if (!interaction.isCommand()) return
 
-            const slashcmd = client.slashcommands.get(interaction.commandName)
-            if (!slashcmd) interaction.reply("mushasho no te entiendo habla normal cohone")
+            const slashcmd = client.slashcommands.get(interaction.commandName);
+            if (!slashcmd) interaction.reply("mushasho no te entiendo habla normal cohone");
 
-            await interaction.deferReply()
-            await slashcmd.run({ client, interaction })
+            console.log(`🛠️ New command: [${new Date(Date.now()).toUTCString()}]>${interaction.member.nickname}(${interaction.user.username}): ${interaction}`);
+            await interaction.deferReply();
+            await slashcmd.run({ client, interaction });
         }
-        handleCommand()
+        handleCommand();
     })
-    client.login(token)
+    client.login(token);
 }
