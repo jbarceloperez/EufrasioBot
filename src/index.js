@@ -5,7 +5,7 @@ const { REST } = require("@discordjs/rest")
 const { Routes } = require("discord-api-types/v9")
 require('dotenv').config();
 
-const COMMANDS_FOLDER = "src/commands"
+const COMMANDS_FOLDER = "commands"
 const token = process.env.TOKEN;
 const client_id = process.env.CLIENT_ID;
 const guild_id = process.env.GUILD_ID;
@@ -14,7 +14,13 @@ const guild_id = process.env.GUILD_ID;
 const LOAD_SLASH = process.argv[2] == "load"
 
 // elemento cliente
-const client = new Discord.Client({ intents: ["Guilds", "GuildVoiceStates"] });
+const client = new Discord.Client({ intents: [
+    Discord.IntentsBitField.Flags.Guilds,
+    Discord.IntentsBitField.Flags.GuildMembers,
+    Discord.IntentsBitField.Flags.GuildMessages,
+    Discord.IntentsBitField.Flags.MessageContent,
+    Discord.IntentsBitField.Flags.GuildVoiceStates
+] });
 
 // colección de comandos slash
 client.slashcommands = new Discord.Collection();
@@ -27,24 +33,26 @@ client.player = new Player(client, {
     }
 });
 
-// Cargador de comandos
+// Cargador de ficheros
 let commands = [];
 
-const slashFiles = fs.readdirSync(COMMANDS_FOLDER).filter(file => file.endsWith(".js"));
+// Recorre los ficheros de la carpeta commands 
+const slashFiles = fs.readdirSync("src/" + COMMANDS_FOLDER).filter(file => file.endsWith(".js"));
 for (const file of slashFiles){
-    console.log(file);
-    const slashcmd = require(`${COMMANDS_FOLDER}/${file}`);
+    const fullPath = `${__dirname}/${COMMANDS_FOLDER}/${file}`;
+    console.log("📂 Loaded file:", fullPath)  // DEBUG
+    const slashcmd = require(fullPath);
     client.slashcommands.set(slashcmd.data.name, slashcmd);
     if (LOAD_SLASH) commands.push(slashcmd.data.toJSON());
 }
 
-
+// Cargar los comandos en el servidor para que aparezcan disponibles
 if (LOAD_SLASH) {
     const rest = new REST({ version: "9" }).setToken(token)
-    console.log(" - LOADING SLASH COMMANDS - ")
+    console.log("\n - LOADING SLASH COMMANDS - ")
     rest.put(Routes.applicationGuildCommands(client_id, guild_id), {body: commands})
     .then(() => {
-        console.log("Successfully loaded")
+        console.log("✅ Successfully loaded.\nExiting...")
         process.exit(0)
     })
     .catch((err) => {
@@ -54,11 +62,11 @@ if (LOAD_SLASH) {
         }
     })
 }
-else {
-    client.on("ready", () => {
-        console.log(`Logged in as ${client.user.tag}`)
+else {  // Ejecución normal del bot, login e implementación del handler de interacciones
+    client.on(Discord.Events.ClientReady, () => {
+        console.log(`\n✅ Logged in as ${client.user.tag}\n`)
     })
-    client.on("interactionCreate", (interaction) => {
+    client.on(Discord.Events.InteractionCreate, (interaction) => {  // al enviarse un mensaje al servidor
         async function handleCommand() {
             if (!interaction.isCommand()) return
 
@@ -72,19 +80,3 @@ else {
     })
     client.login(token)
 }
-
-// client.once(Events.ClientReady, c => {
-//     console.log(`Logging in as ${c.user.username}`);
-//     const ping = new SlashCommandBuilder()
-//         .setName("ping")
-//         .setDescription("Replies with 'pong'!");
-//     client.application.commands.create(ping);
-// });
-// client.login(token);
-
-// client.on(Events.InteractionCreate, interaction => {
-//     console.log("\nNueva interacción:")
-//     console.log(interaction);
-//     if (interaction.commandName === "ping")
-//         interaction.reply("como que pin ezo que mierda EEEH");
-// });
