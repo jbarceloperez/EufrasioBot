@@ -73,7 +73,7 @@ else {  // Ejecución normal del bot, login e implementación del handler de int
             const slashcmd = client.slashcommands.get(interaction.commandName);
             if (!slashcmd) interaction.reply("mushasho no te entiendo habla normal cohone");
 
-            console.log(`🛠️ New command: [${new Date(Date.now()).toUTCString()}]>${interaction.member.nickname}(${interaction.user.username}): ${interaction}`);
+            console.log(`🛠️  [${new Date(Date.now()).toUTCString()}]>${interaction.member.nickname}(${interaction.user.username}): ${interaction}`);
             await interaction.deferReply();
             await slashcmd.run({ client, interaction });
         }
